@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<fields>
+    <field number="1" name="Account" type="STRING"/>
+    <field number="2" name="AdvId" type="STRING"/>
+    <field number="3" name="AdvRefID" type="STRING"/>
+    <field number="4" name="AdvSide" type="CHAR">
+        <value enum="1" description="BUY"/>
+        <value enum="2" description="SELL"/>
+        <value enum="X" description="CROSS"/>
+        <value enum="T" description="TRADE"/>
+    </field>
+    <field number="5" name="AdvTransType" type="STRING">
+        <value enum="N" description="NEW"/>
+        <value enum="C" description="CANCEL"/>
+        <value enum="R" description="REPLACE"/>
+    </field>
+    <field number="6" name="AvgPx" type="PRICE"/>
+</fields>
