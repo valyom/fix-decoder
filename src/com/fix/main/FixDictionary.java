@@ -81,7 +81,7 @@ public class FixDictionary {
 
         // return "\n\n[" + String.join(" |\n\t ", translated) + "]";
 
-        return "\n[" + String.join(" \n\t ", translated) + "]";
+        return "[" + String.join(" \n\t ", translated) + "]";
     }
 
     private FileReader  getInputStream (String file)  {

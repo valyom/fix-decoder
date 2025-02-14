@@ -60,10 +60,10 @@ public class LogProcessor {
             if (!inMsgFromPrevLine) {
                 if (msg.startsWith(FIX_MESSAGE_START)) {
                     // result += this.dict.explainMessage(msg);
-                    System.out.print(this.dict.explainMessage(msg));
+                    System.out.println("\n" + this.dict.explainMessage(msg));
                 } else {
                     // result += "[" + msg + "]" ;
-                    System.out.println("[" + msg + "]");
+                    System.out.print("[" + msg + "]");
                 }
                 msg = "";
             }
