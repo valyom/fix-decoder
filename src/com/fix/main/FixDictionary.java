@@ -57,7 +57,7 @@ public class FixDictionary {
 
     public String explainMessage(String message) {
         if (fields == null)
-            return "";
+            return message;
 
         String[] parts = message.split("\\|");
         String[] translated = new String[parts.length];
@@ -66,7 +66,7 @@ public class FixDictionary {
             String[] pair = part.split("=");
             FixField f = fields.get(pair[0]);
             if (f == null) {
-                System.out.println(part);
+                translated[j++] = part;
                 continue;
             }
 
@@ -81,7 +81,7 @@ public class FixDictionary {
 
         // return "\n\n[" + String.join(" |\n\t ", translated) + "]";
 
-        return "\n\n[" + String.join(" \n\t ", translated) + "]";
+        return "\n[" + String.join(" \n\t ", translated) + "]";
     }
 
     private FileReader  getInputStream (String file)  {

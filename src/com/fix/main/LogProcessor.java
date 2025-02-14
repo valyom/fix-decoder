@@ -38,8 +38,8 @@ public class LogProcessor {
                 continue;
             }
             if (n > 0) {
-                //result +=line.substring(i-n, ++i)
-                System.out.print(line.substring((i-n), ++i));
+                //result +=line.substring(i-n, i++)
+                System.out.print(line.substring((i-n), i++)); // do not include '['
                 n = 0;
             } else ++i;
 
