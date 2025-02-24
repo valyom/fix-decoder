@@ -1,6 +1,8 @@
 package com.fix.main;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.io.File;
@@ -34,9 +36,9 @@ public class LogTailer {
             Path path = new File(logFile).toPath();
             if (Files.isSymbolicLink(path)) {
                 logFile = Files.readSymbolicLink(path).toAbsolutePath().toString();
-                System.out.println("Resolved symlink: " + logFile);
+                /// System.out.println("Resolved symlink: " + logFile);
             }
-            System.out.println("Using log file: " + logFile);
+            // System.out.println("Using log file: " + logFile);
         }
 
         // Graceful shutdown hook
@@ -80,13 +82,15 @@ public class LogTailer {
                 while (running) {
                     line = reader.readLine();
                     if (line != null) {
-                        queue.put(line);
+                        while (!queue.offer(line)) {
+                            Thread.sleep(100);
+                        };
                     }
                 }
             } catch (IOException  e) {
                 e.printStackTrace();
             } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
+                throw new RuntimeException(e);
             }
         });
     }
@@ -110,12 +114,14 @@ public class LogTailer {
                         raf.seek(filePointer);
                         String line;
                         while ((line = raf.readLine()) != null) {
-                            queue.put(line);
+                           while(  !queue.offer(line) ) {
+                               Thread.sleep(100);
+                           }
                         }
                         filePointer = raf.getFilePointer();
+                    } else {
+                        Thread.sleep(200); // Avoid busy-waiting
                     }
-
-                    Thread.sleep(200); // Avoid busy-waiting
                 }
             } catch (IOException e) {
                 e.printStackTrace();
