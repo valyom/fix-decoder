@@ -58,6 +58,7 @@ public class FixDictionary {
     public String explainMessage(String message) {
         if (fields == null)
             return message;
+        boolean useNewLine = false;
 
         String[] parts = message.split("\\|");
         String[] translated = new String[parts.length];
@@ -74,6 +75,8 @@ public class FixDictionary {
             String description = f.getValueDescription(pair[1]);
             String traslatedPart = f.getName() + "(" + pair[0] + ")" + "=" + description;
             if (pair[1].compareTo(description) != 0)  {
+                if (!useNewLine)
+                    useNewLine = true;
                 traslatedPart = traslatedPart + "(" + pair[1] + ")";
             }
             translated[j++] = traslatedPart ;
@@ -81,7 +84,9 @@ public class FixDictionary {
 
         // return "\n\n[" + String.join(" |\n\t ", translated) + "]";
 
-        return "[" + String.join(" \n\t ", translated) + "]";
+        return useNewLine ?
+                "\n\t[" + String.join(" \n\t ", translated) + "]\n"
+                :"[" + message .trim() + "]";
     }
 
     private FileReader  getInputStream (String file)  {
