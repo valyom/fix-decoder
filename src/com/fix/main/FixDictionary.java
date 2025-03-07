@@ -20,11 +20,12 @@ public class FixDictionary {
     public boolean isInitialized() {
         return fields != null && !fields.isEmpty();
     }
-    public void init() {
+    public FixDictionary init() throws InvalidObjectException {
         initProd();
+        return this;
     }
 
-    public void initDebug() {
+    public void initDebug() throws InvalidObjectException {
         String dictFile = DEFAULT_XML_DICTIONARY_DEBUG;
         try {
             File inputFile = new File(dictFile);
@@ -35,14 +36,14 @@ public class FixDictionary {
             saxParser.parse(inputFile, handler);
             fields = handler.getFieldList();
         } catch ( ParserConfigurationException | SAXException | IOException  e) {
-            e.printStackTrace();
+            throw new InvalidObjectException  ("Dictionary init failed  " + e.getMessage());
         }
     }
-    public void initProd() {
+    public void initProd() throws  InvalidObjectException {
         String dictFile = DEFAULT_XML_DICTIONARY;
         try (InputStream inputStream = getClass().getResourceAsStream(dictFile)) {
             if (inputStream == null) {
-                throw new IllegalArgumentException("File not found: " + dictFile);
+                throw new InvalidObjectException("Not in resources: " + dictFile);
             }
 
             SAXParserFactory factory = SAXParserFactory.newInstance();
@@ -51,7 +52,7 @@ public class FixDictionary {
             saxParser.parse(new InputSource(inputStream), handler); // Use InputSource for InputStream
             fields = handler.getFieldList();
         } catch (IOException | SAXException | javax.xml.parsers.ParserConfigurationException e) {
-            e.printStackTrace();
+            throw new InvalidObjectException  ("Dictionary init failed  " + e.getMessage());
         }
     }
 
@@ -72,8 +73,14 @@ public class FixDictionary {
             }
 
             //System.out.print(f.getName() + "=" + f.getValueDescription(pair[1]) );
+            if (pair.length < 2) {
+                translated[j++] = part;
+                continue;
+            }
             String description = f.getValueDescription(pair[1]);
-            String traslatedPart = f.getName() + "(" + pair[0] + ")" + "=" + description;
+            //String traslatedPart = f.getName() + "(" + pair[0] + ")" + "=" + description;
+            String traslatedPart = String.format("%-6s %-25s %s", pair[0], f.getName() , description); // f.getName() + "(" + pair[0] + ")" + "=" + description;
+
             if (pair[1].compareTo(description) != 0)  {
                 if (!useNewLine)
                     useNewLine = true;

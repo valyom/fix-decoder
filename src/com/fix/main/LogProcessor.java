@@ -9,8 +9,6 @@ public class LogProcessor {
     private static final String FIX_MESSAGE_START = "35=";
     private static final String FIX_MESSAGE_KEY = "[35=";
     private final FixDictionary dict;
-    private final Set<Character> whiteChars;
-
 
     private boolean inMsgFromPrevLine = false;
     private String msg = "";
@@ -21,15 +19,14 @@ public class LogProcessor {
 
     public LogProcessor(FixDictionary dict) {
         this.dict = dict;
-        this.whiteChars = new HashSet<>();
-        whiteChars.add ('\n');
-        whiteChars.add ('\r');
-        whiteChars.add ('\t');
-        whiteChars.add (' ');
     }
     public void processLine(String line ) throws IOException {
 
-        String rest = line;
+        String rest = line.trim();
+        if(rest.startsWith("#")) {
+            //System.out.print(line);
+            return;
+        }
         while (!rest.isEmpty()) {
             if (inMsgFromPrevLine) {
                 int idxE = rest.indexOf(']');
@@ -41,7 +38,7 @@ public class LogProcessor {
 
                 rest = rest.substring(idxE+1);
                 if (msg.startsWith(FIX_MESSAGE_START)) {
-                    System.out.println("\n" + this.dict.explainMessage(msg));
+                    output("\n" + this.dict.explainMessage(msg));
                 } else {
                     System.out.print("[" + msg + "]");
                 }
@@ -63,7 +60,7 @@ public class LogProcessor {
                 rest = rest.substring(idxE+1);
                 //if (msg.startsWith(FIX_MESSAGE_START)) {
                     String explained = this.dict.explainMessage(msg);
-                    System.out.print(explained);
+                    output(explained);
 //                } else {
 //                    System.out.print("[" + msg + "]");
 //                }
@@ -73,9 +70,16 @@ public class LogProcessor {
                 rest = "";
             }
         }
-        if (!inMsgFromPrevLine)  System.out.println();
+        if (!inMsgFromPrevLine)  output("");
     }
 
+    private long k = 0;
+    private void output (String line) {
+        System.out.println(line);
+        //if (++k % 121 == 0) {
+            System.out.flush();
+        //}
+    }
 
     public  static void main (String [] args ) throws IOException {
         String  splipagelog = "2025-03-03 10:00:27,727 [INFO ] OUT --> [35=8|34=287363|1=762933520|37=106936956|40=1|39=2|55=USDJPY|31=150.41500000000002|38=2000000.0|151=1900000.0|14=100000.0|54=2|59=4|60=1741014027727] [ttDemouk, 1, rdy] [i-6fomo-trading-Thread-1]\n" +
