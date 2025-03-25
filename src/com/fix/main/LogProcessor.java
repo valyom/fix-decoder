@@ -1,5 +1,7 @@
 package com.fix.main;
 
+import com.fix.Config;
+
 import java.io.IOException;
 import java.nio.file.FileSystemNotFoundException;
 import java.util.HashSet;
@@ -27,6 +29,7 @@ public class LogProcessor {
             //System.out.print(line);
             return;
         }
+        final String keyWordInColor = Config.ANSI_RED + Config.KEYWORD + Config.ANSI_RESET;
         while (!rest.isEmpty()) {
             if (inMsgFromPrevLine) {
                 int idxE = rest.indexOf(']');
@@ -42,12 +45,18 @@ public class LogProcessor {
                 } else {
                     System.out.print("[" + msg + "]");
                 }
+
                 msg = "";
                 inMsgFromPrevLine= false;
             }
             int idxB = rest.indexOf('[');
             if (idxB >= 0) {
-                System.out.print(rest.substring(0, idxB)); // do not include '['
+                String s1 = rest.substring(0, idxB);
+                if (Config.KEYWORD != null && s1.contains(Config.KEYWORD)) {
+                    s1 = s1.replace(Config.KEYWORD,  keyWordInColor );
+                } else {
+                    System.out.print(s1); // do not include '['
+                }
                 rest = rest.substring(idxB+1);
                 int idxE = rest.indexOf(']');
                 if (idxE < 0) {
@@ -66,6 +75,10 @@ public class LogProcessor {
 //                }
                 msg = "";
             } else {
+
+                if (Config.KEYWORD != null && rest.contains(Config.KEYWORD)) {
+                    rest = rest.replace(Config.KEYWORD,  keyWordInColor );
+                }
                 System.out.print(rest);
                 rest = "";
             }
