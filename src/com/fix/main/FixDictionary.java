@@ -1,5 +1,6 @@
 package com.fix.main;
 
+import com.fix.Config;
 import com.fix.data.model.FixField;
 import com.fix.parser.FieldHandler;
 import org.xml.sax.InputSource;
@@ -77,9 +78,17 @@ public class FixDictionary {
                 translated[j++] = part;
                 continue;
             }
+
+            final String ANSI_RED = "\u001B[31m";
+            final String ANSI_RESET = "\u001B[0m";
+//System.out.println(ANSI_RED + "This text is red!" + ANSI_RESET);
+
             String description = f.getValueDescription(pair[1]);
-            //String traslatedPart = f.getName() + "(" + pair[0] + ")" + "=" + description;
-            String traslatedPart = String.format("%-6s %-25s %s", pair[0], f.getName() , description); // f.getName() + "(" + pair[0] + ")" + "=" + description;
+            String traslatedPart ;
+            if (Config.KEYWORD != null && description.equals(Config.KEYWORD))
+                traslatedPart = String.format("%-6s %-25s %s%s%s", pair[0], f.getName() , ANSI_RED, description, ANSI_RESET); // f.getName() + "(" + pair[0] + ")" + "=" + description;
+            else
+                traslatedPart = String.format("%-6s %-25s %s", pair[0], f.getName() , description); // f.getName() + "(" + pair[0] + ")" + "=" + description;
 
             if (pair[1].compareTo(description) != 0)  {
                 if (!useNewLine)

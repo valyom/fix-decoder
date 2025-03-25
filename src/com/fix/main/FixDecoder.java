@@ -1,5 +1,7 @@
 package com.fix.main;
 
+import com.fix.Config;
+
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -21,8 +23,8 @@ public class FixDecoder {
     private final static CountDownLatch latch = new CountDownLatch(1);
 
     public static void main (String[] args) throws InterruptedException, IOException {
-
-        boolean isPipedInput  = System.console() == null; //System.in.available() > 0;
+        // args = "-curr -key 41067400 /home/victor/fx.msg".split(" ");
+        boolean isPipedInput = System.console() == null; //System.in.available() > 0;
         if (!isPipedInput)
             parseParam(args);
 
@@ -75,6 +77,10 @@ public class FixDecoder {
                     raf.seek(filePointer);
                     String line;
                     while (running  && (line = raf.readLine()) != null) {
+                        if (Config.KEYWORD != null && !line.contains(Config.KEYWORD)) {
+                            continue;
+                        }
+
                         while( running && !queue.offer(line) ) {
                             Thread.sleep(50);
                         }
@@ -148,10 +154,16 @@ public class FixDecoder {
     }
 
     private static void parseParam(String []args) throws IOException, IllegalArgumentException {
+        boolean takeKeyWord = false;
         for(String arg :args) {
             if (arg.trim().isEmpty())
                 continue;
-            if(!arg.startsWith("-")) {
+            if (arg.equals("-key") & Config.KEYWORD== null) {
+                takeKeyWord = true;
+            } else if (takeKeyWord && !arg.startsWith("-")) {
+                Config.KEYWORD=arg;
+                takeKeyWord = false;
+            } else if(!arg.startsWith("-")) {
                 logFile = arg;
             } else if ("-curr".equalsIgnoreCase(arg)) {
                 currentContentOnly = true;
