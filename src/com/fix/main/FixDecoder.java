@@ -23,16 +23,28 @@ public class FixDecoder {
     private final static CountDownLatch latch = new CountDownLatch(1);
 
     public static void main (String[] args) throws InterruptedException, IOException {
-        // args = "-curr -key 41067400 /home/victor/fx.msg".split(" ");
-        boolean isPipedInput = System.console() == null; //System.in.available() > 0;
-        if (!isPipedInput)
+//        args = " -f 39 -curr -key 41067400 /home/victor/fx.msg".split(" ");
+//        args = "-m [35=D|34=271133|1=41067400|55=US30|54=1|58=TT-WebTrader|60=1742590775499|59=4|38=20.0|40=1|583=p-1742581465335-1__25_X|11=cp-1742590775499-1|18=1|44=42018.75]  -f 39 -curr -key 41067400 /home/victor/fx.msg".split(" ");
+        boolean isPipedInput =  System.console() == null; //System.in.available() > 0;
+        // if (!isPipedInput)
             parseParam(args);
 
-        processor = new LogProcessor(new FixDictionary().init());
+        FixDictionary dict = new FixDictionary().init();
+        if (Config.FIELD_TO_EXPLAIN != null) {
+            System.out.println( dict.explainField(Config.FIELD_TO_EXPLAIN));
+            return;
+        }
+
+        processor = new LogProcessor(dict);
 
         executor = Executors.newFixedThreadPool(2);
-        executor.execute(isPipedInput ? FixDecoder::produceFromStdIn : FixDecoder::produceFromFile);
         executor.execute(FixDecoder::consume);
+
+        if (Config.SINGLE_MESSAGE !=null )
+            executor.execute(FixDecoder::produceFromSingleMessage);
+        else
+            executor.execute(isPipedInput ? FixDecoder::produceFromStdIn : FixDecoder::produceFromFile);
+
         Runtime.getRuntime().addShutdownHook(new Thread(FixDecoder::shutDownHook));// Add shutdown hook for graceful shutdown
 
         executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
@@ -59,7 +71,18 @@ public class FixDecoder {
             throw new RuntimeException(e);
         }
     }
+    private static void produceFromSingleMessage()  {
+        String message = Config.SINGLE_MESSAGE;
+        try {
+            queue.offer(message);
+            Thread.sleep(50);
+            queue.offer("Finished");// signal consumer to exit
+            Thread.sleep(50);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
 
+    }
     /**  producer  log file */
     private static void produceFromFile() {
         try (RandomAccessFile raf = new RandomAccessFile(logFile, "r")) {
@@ -155,10 +178,28 @@ public class FixDecoder {
 
     private static void parseParam(String []args) throws IOException, IllegalArgumentException {
         boolean takeKeyWord = false;
-        for(String arg :args) {
+        for (int i = 0; i < args.length; i++) {
+            String arg = args[i];
             if (arg.trim().isEmpty())
                 continue;
-            if (arg.equals("-key") & Config.KEYWORD== null) {
+            if (arg.equals("-m")) {
+                int j = i+1;
+                if (j < args.length) {
+                    Config.KEYWORD = null;
+                    Config.FIELD_TO_EXPLAIN = null;
+                    logFile = null;
+                    Config.SINGLE_MESSAGE = args[j];
+                    return;
+                }
+            } else if (arg.equals("-f")) {
+                int j = i+1;
+                if (j < args.length) {
+                    Config.KEYWORD = null;
+                    logFile = null;
+                    Config.FIELD_TO_EXPLAIN = args[j];
+                    return;
+                }
+            } else if (arg.equals("-key") & Config.KEYWORD== null) {
                 takeKeyWord = true;
             } else if (takeKeyWord && !arg.startsWith("-")) {
                 Config.KEYWORD=arg;
@@ -171,6 +212,25 @@ public class FixDecoder {
                 keepQuiet = false;
             }
         }
+
+
+//
+//        for(String arg :args) {
+//            if (arg.trim().isEmpty())
+//                continue;
+//            if (arg.equals("-key") & Config.KEYWORD== null) {
+//                takeKeyWord = true;
+//            } else if (takeKeyWord && !arg.startsWith("-")) {
+//                Config.KEYWORD=arg;
+//                takeKeyWord = false;
+//            } else if(!arg.startsWith("-")) {
+//                logFile = arg;
+//            } else if ("-curr".equalsIgnoreCase(arg)) {
+//                currentContentOnly = true;
+//            } else if ("-verbose".equalsIgnoreCase(arg)) {
+//                keepQuiet = false;
+//            }
+//        }
 
         // Resolve symlink if it's a symlink
         Path path = new File(logFile).toPath();

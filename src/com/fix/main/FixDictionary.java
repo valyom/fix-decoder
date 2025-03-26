@@ -104,6 +104,11 @@ public class FixDictionary {
                 :"[" + message .trim() + "]";
     }
 
+    public String explainField (String field) {
+        FixField f = fields == null ? null : fields.get(field);
+        return (f == null) ? "" : f.toString();
+    }
+
     private FileReader  getInputStream (String file)  {
         try {
             return new FileReader(file);
@@ -112,5 +117,13 @@ public class FixDictionary {
         }
 
         return null;
+    }
+
+
+
+    public static void main (String[] args) throws InvalidObjectException {
+        FixDictionary dictionary = new FixDictionary();
+        dictionary.initProd();
+        System.out.println(dictionary.explainField("39"));
     }
 }

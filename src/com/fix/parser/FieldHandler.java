@@ -35,4 +35,5 @@ public class FieldHandler  extends DefaultHandler {
             currentField = null;
         }
     }
+
 }

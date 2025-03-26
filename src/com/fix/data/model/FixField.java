@@ -47,11 +47,17 @@ public class FixField {
 
     @Override
     public String toString() {
-        return "FixField{" +
+        if (values.isEmpty())
+            return "FixField : {" +
+                    "number='" + number + '\'' +
+                    ", name='" + name + '\'' +
+                    ", type='" + type + '\'' + "}";
+
+        return "FixField : {" +
                 "number='" + number + '\'' +
                 ", name='" + name + '\'' +
                 ", type='" + type + '\'' +
-                ", values=" + values +
+                ", values=\n\t" + String.join("\n\t", values.toString().split(",") )+ "\n"+
                 '}';
     }
 }
